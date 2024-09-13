@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Línea de tiempo de procesadores</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(45deg, #7a9aff, #9fbce5, #c0d0e0); /* Fondo 10% más oscuro */
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            color: white;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            color: #333;
+            font-size: 32px;
+            margin-top: 30px; /* Ajuste del margen superior */
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            font-weight: bold;
+        }
+
+        .chart-container {
+            width: 90%;
+            max-width: 1000px;
+            background-color: rgba(255, 255, 255, 0.25); /* Fondo más claro para el contenedor */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            height: 500px; /* Altura ajustada */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        canvas {
+            height: 70%; /* Altura del canvas ajustada al 70% del contenedor */
+            max-height: 350px; /* Altura máxima ajustada */
+        }
+
+        .legend-container {
+            margin-top: 40px; /* Ajuste del margen superior */
+            display: flex;
+            justify-content: space-around;
+            color: #333; /* Color de texto para los logotipos */
+            height: 30%; /* Ajuste de altura del contenedor de leyenda */
+            align-items: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .legend-item img {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+
+        .chartjs-x-axis text {
+            font-size: 16px; /* Tamaño de fuente aumentado */
+            font-weight: bold;
+            fill: #333; /* Color más oscuro para los años */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.6); /* Agregar iluminación al texto */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Estilo de fuente mejorado */
+        }
+
+        .chartjs-y-axis text {
+            font-size: 12px;
+            fill: #666; /* Color más oscuro para el eje Y */
+        }
+    </style>
+</head>
+<body>
+    <h1>Línea de tiempo de la evolución de los procesadores</h1>
+    <div class="chart-container">
+        <canvas id="timelineChart"></canvas>
+        <div class="legend-container">
+            <div class="legend-item">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Intel_logo_2020.svg/2560px-Intel_logo_2020.svg.png" alt="Intel">
+                <span>Intel</span>
+            </div>
+            <div class="legend-item">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/AMD_Logo_2015.svg/2560px-AMD_Logo_2015.svg.png" alt="AMD">
+                <span>AMD</span>
+            </div>
+            <div class="legend-item">
+                <img src="https://cdn.iconscout.com/icon/free/png-256/apple-853681.png" alt="Apple">
+                <span>Apple</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de la línea de tiempo con descripciones
+        const labels = [
+            '1971 - Intel 4004',
+            '1974 - Intel 8080',
+            '1978 - Intel 8086',
+            '1985 - Intel 80386',
+            '1993 - Intel Pentium',
+            '2006 - Intel Core 2 Duo',
+            '2008 - Intel Core Nehalem',
+            '2011 - AMD Bulldozer',
+            '2017 - AMD Ryzen',
+            '2020 - Apple M1',
+            '2021 - Intel Core i9'
+        ];
+
+        const descriptions = [
+            'Primer microprocesador comercial de Intel, marcando el inicio de la era de los procesadores integrados.',
+            'Microprocesador de 8 bits de Intel, precursor del 8086.',
+            'Primer microprocesador de 16 bits de Intel, base de la arquitectura x86.',
+            'Microprocesador de 32 bits, importante para la evolución del cómputo personal.',
+            'Marca el inicio de la famosa línea Pentium, ofreciendo mejoras significativas en rendimiento.',
+            'Primera generación de la línea Core, introduciendo una arquitectura multinúcleo.',
+            'Arquitectura Nehalem de Intel, trayendo importantes mejoras en rendimiento y eficiencia.',
+            'Arquitectura Bulldozer de AMD, enfocada en el rendimiento multicore.',
+            'Lanzamiento de la serie Ryzen, revolucionando el mercado con gran rendimiento y valor.',
+            'Primer chip de Apple basado en ARM, destacándose por su gran rendimiento y eficiencia.',
+            'Última generación de procesadores Intel Core, mejorando en rendimiento y capacidades.'
+        ];
+
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: 'Evolución de los procesadores',
+                data: [1971, 1974, 1978, 1985, 1993, 2006, 2008, 2011, 2017, 2020, 2021],
+                backgroundColor: 'rgba(65, 105, 225, 0.2)',
+                borderColor: 'rgba(65, 105, 225, 1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 7,
+                pointBackgroundColor: '#ffeb3b',
+                pointBorderColor: '#fff',
+                pointHoverRadius: 10,
+                borderWidth: 2
+            }]
+        };
+
+        // Configuración del gráfico
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            stepSize: 5,
+                            callback: function(value) { return value; }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Año',
+                            color: '#666'
+                        },
+                        grid: {
+                            color: '#444'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            autoSkip: false,
+                            maxRotation: 45,
+                            minRotation: 45,
+                            color: '#333', /* Color más oscuro para los años */
+                            font: {
+                                size: 16, /* Tamaño de fuente aumentado */
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                return tooltipItems[0].label;
+                            },
+                            label: function(tooltipItem) {
+                                return descriptions[tooltipItem.dataIndex];
+                            }
+                        }
+                    }
+                },
+                maintainAspectRatio: false,
+                responsive: true
+            }
+        };
+
+        // Renderizar el gráfico
+        const myChart = new Chart(
+            document.getElementById('timelineChart'),
+            config
+        );
+    </script>
+</body>
+</html>
